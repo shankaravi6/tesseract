@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("./fonts/satoshi.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.p-button-icon-only {
+  color: #f2f2f2 !important;
+}
+
+.p-inputtext.p-component {
+  border-radius: 0px !important;
+  padding: 2px !important;
+  background-color: transparent;
+}
+
+.Mui-disabled {
+  color: #f2f2f2 !important;
+  background: #3f3f46 !important;
+}
