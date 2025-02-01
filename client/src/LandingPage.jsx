@@ -41,7 +41,7 @@ const LandingPage = ({ onGetStartedClick }) => {
                 marginTop: { xs: "20px", sm: "0" },
               }}
             >
-              <Typography onClick={() => navigate('/main/home')} variant="h6">Get Started</Typography>
+              <Typography onClick={() => navigate('/process')} variant="h6">Get Started</Typography>
             </Button>
           </Box>
         </Box>
@@ -55,23 +55,24 @@ const LandingPage = ({ onGetStartedClick }) => {
             flexDirection: { xs: "column-reverse", md: "row" },
           }}
         >
-          <Box sx={{ width: { xs: "100%", md: "50%" } }}>
-            <Typography variant="h1" sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
-              AI-Powered Dynamic Content Management System
+          <Box sx={{ width: { xs: "100%", md: "50%" }, padding: {xs: "25px 0", md:"15px 0", sm:"15px 0"} }}>
+            <Typography className="text-justify" variant="h1" sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
+            <span>AI-Powered</span> Dynamic Content Management System
             </Typography>
             <Typography
               sx={{
-                mt: 3,
+                mt: 4,
                 color: palette.text.secondary,
                 fontSize: { xs: "1.2rem", sm: "1.5rem" },
               }}
               variant="h4"
+              className="text-justify"
             >
               Build, customize, and optimize content effortlessly. Leverage AI
               to automate workflows, enhance user engagement, and deliver
               personalized experiences.
             </Typography>
-            <Typography color="#ff0066" variant="h5" sx={{ mt: 3, fontSize: { xs: "1.25rem", sm: "1.3rem" } }}>
+            <Typography color="#ff0066" variant="h5" sx={{ mt: 4, fontSize: { xs: "1.25rem", sm: "1.3rem" } }}>
               Start with [Smart]
             </Typography>
           </Box>
@@ -91,13 +92,13 @@ const LandingPage = ({ onGetStartedClick }) => {
           className="flex w-full justify-between items-center"
           sx={{
             padding: { xs: "20px 10px", sm: "0px 45px 5px 45px" },
-            flexDirection: { xs: "row", sm: "row" },
+            flexDirection: { xs: "column", sm: "row" },
             alignItems: "center",
           }}
         >
           <Box>
             <Typography color="#52525b" sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}>
-              @ Copyright by SILO
+              @ Copyright by <a href="http://silo-app.netlify.app/">SILO</a>
             </Typography>
           </Box>
           <Box className="flex p-5" gap="1rem" sx={{ flexDirection: { xs: "row", sm: "row" } }}>

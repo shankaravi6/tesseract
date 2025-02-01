@@ -20,7 +20,7 @@ import axios from "axios";
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import { BASE_URL, IN_URL } from "../../hooks/baseURL";
-const Allalwin_student_dataData = () => {
+const Allselection_dataData = () => {
 const [rows, setRows] = useState([]);
 const [openSnackbar, setOpenSnackbar] = useState(false);
 const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -32,7 +32,7 @@ useEffect(() => {
   setLoading(true);
 
   // Fetch both datasets
-  const fetchStudentData = axios.get(`${BASE_URL}/api/data/alwin_student_data`);
+  const fetchStudentData = axios.get(`${BASE_URL}/api/data/selection_data`);
   const fetchProjectFields = axios.get(
     `${IN_URL}/get_projects_data`
   );
@@ -51,8 +51,9 @@ useEffect(() => {
       setRows(updatedStudentData);
 
       // Project fields response
+      // Project fields response
       const project = projectResponse.data.projectsWithoutActiveField.find(
-        (project) => project.collectionName === "alwin_student_data"      );
+        (project) => project.collectionName === "selection_data"      );
 
       const projectFields = project?.fields || [];
 
@@ -117,7 +118,7 @@ try {
 setLoading(true);
 const newStatus = !currentStatus;
 const response = await axios.put(
-`${BASE_URL}/api/data/alwin_student_data/${id}`,
+`${BASE_URL}/api/data/selection_data/${id}`,
 {
 active: newStatus,
 }
@@ -148,7 +149,7 @@ const handleCloseSnackbar = () => {
 setOpenSnackbar(false);
 };
 const handleAddData = () => {
-navigate("/main/alwin_university/AddEditalwin_student_dataData/add");
+navigate("/main/alwin_university/AddEditselection_dataData/add");
 };
 return (
 <Grid container spacing={3} sx={{ padding: 3 }}>
@@ -203,7 +204,7 @@ return (
       getRowId={(row) =>
    row._id}
    autoHeight
-   onRowDoubleClick={(params) => navigate(`/main/Alwin_University/AddEditalwin_student_dataData/edit/${params.row._id}`)}
+   onRowDoubleClick={(params) => navigate(`/main/Alwin_University/AddEditselection_dataData/edit/${params.row._id}`)}
    />
    )}
    </div>
@@ -225,4 +226,4 @@ return (
 </Grid>
 );
 };
-export default Allalwin_student_dataData;
+export default Allselection_dataData;

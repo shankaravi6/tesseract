@@ -11,17 +11,13 @@ const PORT = 5000;
 app.use(cors());
 app.use(bodyParser.json()); // To parse JSON request bodies
 const simpleGit = require("simple-git");
-require('dotenv').config();
-
+require("dotenv").config();
 
 mongoose
-  .connect(
-    process.env.MONGO_URL_LOCAL,
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  )
+  .connect(process.env.MONGO_URL_LOCAL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Failed to connect to MongoDB", err));
 const projectSchema = new mongoose.Schema(
@@ -146,8 +142,11 @@ useEffect(() => {
       setRows(updatedStudentData);
 
       // Project fields response
-      const projectFields =
-        projectResponse.data.projectsWithoutActiveField[0]?.fields || [];
+      const project = projectResponse.data.projectsWithoutActiveField.find(
+        (project) => project.collectionName === \"${collectionName}"\
+      );
+
+      const projectFields = project?.fields || [];
 
       if (studentData.length > 0) {
         // Extract valid field names from project fields
@@ -392,30 +391,45 @@ initialValues[field.name] = "";
 return initialValues;
 };
 const validationSchema = Yup.object(
-fields.reduce((schema, field) => {
-if (field.type === "Text") {
-schema[field.name] = Yup.string().required(\`\${field.name} is required\`);
-} 
-else if (field.type === "Checkbox") {
-schema[field.name] = Yup.array()
-.min(1, "At least one field must be selected")
-.required(\`\${field.name} is required\`);
-} else if (field.type === "Date") {
-schema[field.name] = Yup.date()
-.nullable()
-.required(\`\${field.name} is required\`);
-}
-else if (field.type === "Media") {
-schema[field.name] = Yup.mixed().nullable().test("fileFormat", "Unsupported file format", (value) => {
-if (!value) return true; // If no file, it's allowed
-return ["image/jpeg", "image/png", "image/jpg"].includes(value.type);
-}).test("fileSize", "File size is too large", (value) => {
-if (!value) return true;
-return value.size <= 5 * 1024 * 1024; // Limit to 5MB
-});
-}
-return schema;
-}, {})
+  fields.reduce((schema, field) => {
+    if (field.type === "Text" || field.type === "Long Text") {
+      schema[field.name] = Yup.string().required(\`\${field.name} is required\`);
+    } else if (field.type === "Select") {
+      schema[field.name] = Yup.string()
+        .oneOf(field.options, "Invalid selection")
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Checkbox") {
+      schema[field.name] = Yup.array()
+        .min(1, "At least one option must be selected")
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Date") {
+      schema[field.name] = Yup.date()
+        .nullable()
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Autocomplete") {
+      schema[field.name] = Yup.string()
+        .oneOf(field.options, "Invalid selection")
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Boolean") {
+      schema[field.name] = Yup.boolean().required(
+        \`\${field.name} is required\`
+      );
+    } else if (field.type === "Media") {
+      schema[field.name] = Yup.mixed()
+        .test("required", "File is required", (value) => {
+          return value instanceof File; // Ensures a file is selected
+        })
+        .test("fileFormat", "Unsupported file format", (value) => {
+          if (!value) return true; // Skip validation if empty (handled by required test)
+          return ["image/jpeg", "image/png", "image/jpg"].includes(value.type);
+        })
+        .test("fileSize", "File size must be under 5MB", (value) => {
+          if (!value) return true;
+          return value.size <= 5 * 1024 * 1024;
+        });
+    }      
+    return schema;
+  }, {})
 );
 const [initialValues, setInitialValues] = useState(generateInitialValues());
 const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -525,218 +539,270 @@ width:'100%'
 {id ? "Update Data" : "Add New Data"}
 </Typography>
 <form onSubmit={formik.handleSubmit}>
-   {fields.map((field) => {
-   if (field.type == "Text") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <TextField
-      fullWidth
-      label={field.name}
-      name={field.name}
-      value={formik.values[field.name]}
-      onChange={formik.handleChange}
-      onBlur={formik.handleBlur}
-      error={formik.touched[field.name] && Boolean(formik.errors[field.name])}
-      helperText={formik.touched[field.name] && formik.errors[field.name]}
-      />
-   </Grid>
-   );
-   } else if (field.type == "Long Text") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <FormLabel>{field.name}</FormLabel>
-      <ReactQuill
-      style={{ width: "100%" }}
-      value={formik.values[field.name]}
-      onChange={(value) => formik.setFieldValue(field.name, value)}
-      modules={{
-      toolbar: [
-      [{ header: "1" }, { header: "2" }, { font: [] }],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["bold", "italic", "underline"],
-      ["blockquote", "code-block"],
-      [{ align: [] }],
-      ["link", "image"],
-      ],
-      }}
-      />
-   </Grid>
-   );
-   } else if (field.type === "Select") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <FormLabel>{field.name}</FormLabel>
-      <RadioGroup
-         name={field.name}
-         value={formik.values[field.name]}
-         onChange={formik.handleChange}
-         >
-         {field.options.map((option) => (
-         <FormControlLabel
-         key={option}
-         value={option}
-         control={
-         <Radio />
-         }
-         label={option}
-         />
-         ))}
-      </RadioGroup>
-   </Grid>
-   );
-   } else if (field.type === "Checkbox") {
-   return (
-   <Grid sx={{ pb: 3 }} key={field.name}>
-   <FormLabel>{field.name}</FormLabel>
-   <br/>
-   {field.options.map((option) => (
-   <FormControlLabel
-   key={option}
-   control={
-   <Checkbox
-      value={option}
-      checked={formik.values[field.name]?.includes(option)}
-      onChange={(e) =>
-   {
-   const checked = e.target.checked;
-   // Ensure the value is always treated as an array
-   const currentValue = Array.isArray(
-   formik.values[field.name]
-   )
-   ? formik.values[field.name]
-   : [];
-   const newValue = checked
-   ? [...currentValue, option] // Add the selected option
-   : currentValue.filter((item) => item !== option); // Remove the unselected option
-   formik.setFieldValue(field.name, newValue); // Update the form field
-   }}
-   />
-   }
-   label={option}
-   />
-   ))}
-   </Grid>
-   );
-   } else if (field.type === "Autocomplete") {
-   return (
-   <Autocomplete
-   sx={{ pb: 3 }}
-   key={field.name}
-   options={field.options}
-   getOptionLabel={(option) => option}
-   value={formik.values[field.name]}
-   onChange={(e, value) =>
-   formik.setFieldValue(field.name, value)
-   }
-   renderInput={(params) => (
-   <TextField
-   {...params}
-   label={field.name}
-   error={
-   formik.touched[field.name] &&
-   Boolean(formik.errors[field.name])
-   }
-   helperText={
-   formik.touched[field.name] && formik.errors[field.name]
-   }
-   />
-   )}
-   />
-   );
-   } else if (field.type === "Date") {
-   return (
-   <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
-   <Grid direction="column" display="flex">
-      <label>{field.name}</label>
-      <Calendar
-      style={{ width: "350px", padding: "10px", border:"1px solid #3f3f46", borderRadius:"4px", background:"#09090b", color:"#f2f2f2", fontSize:"0.8571428571428571rem" }}
-      value={formik.values[field.name]}
-      onChange={(e) =>
-      formik.setFieldValue(field.name, e.value)
-      }
-      placeholder="Select a date"
-      showIcon
-      />
-      {formik.touched[field.name] &&
-      formik.errors[field.name] && (
-      <Typography variant="body2" color="error">
-         {formik.errors[field.name]}
-      </Typography>
-      )}
-   </Grid>
-   </Grid>
-   );
-   } else if (field.type === "Media") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <Typography variant="body1" gutterBottom>
-         {field.name}
-      </Typography>
-      <Button variant="outlined" component="label" htmlFor="image-upload">
-      Choose File
-      <input
-         id="image-upload"
-         type="file"
-         name={field.name}
-         accept="image/*"
-         onChange={(event) =>
-      formik.setFieldValue(field.name, event.currentTarget.files[0])
-      }
-      ref={fileInputRef}
-      hidden
-      />
-      </Button>
-      {formik.values[field.name] && (
-      <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-      {formik.values[field.name].name}
-      </Typography>
-      )}
-      {existingImage && (
-      <Grid item xs={12} sx={{pb:3, pt:3}}>
-         <Typography variant="body1" gutterBottom>
-            Current Image:
-         </Typography>
-         <img
-         src={\`\${BASE_URL}/uploads/\${existingImage}\`}
-         alt="Current"
-         style={{
-         width: "150px",
-         height: "auto",
-         borderRadius: "8px",
-         }}
-         />
-      </Grid>
-      )}
-   </Grid>
-   );
-   } else if (field.type === "Boolean") { 
-   return ( 
-   <Grid item xs={12} sx={{pb:3}}>
-      <FormControlLabel
-      control={
-      <Switch
-         checked={formik.values.active}
-         onChange={(e) =>
-      formik.setFieldValue("active", e.target.checked)
-      }
-      />
-      }
-      label="Active"
-      />
-   </Grid>
-   )}
-   return null; // If no field type matches
-   })}
-   {/* Submit Button */}
-   <Grid item xs={12} gap={5} display="flex" justifyContent="center">
-      <Button type="submit" variant="contained" disabled={isSubmitting}>
-         <Box display="flex" gap=".5rem">
-            <Typography>{id ? "Update" : "Add"}</Typography>
-            <ArrowOutwardIcon />
-         </Box>
-      </Button>
-   </Grid>
-</form>
+          {fields.map((field) => {
+            if (field.type == "Text") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <TextField
+                    fullWidth
+                    label={field.name.toUpperCase()}
+                    name={field.name}
+                    value={formik.values[field.name]}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched[field.name] &&
+                      Boolean(formik.errors[field.name])
+                    }
+                    helperText={
+                      formik.touched[field.name] && formik.errors[field.name]
+                    }
+                  />
+                </Grid>
+              );
+            } else if (field.type == "Long Text") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <FormLabel>{field.name.toUpperCase()}</FormLabel>
+                  <ReactQuill
+                    style={{ width: "100%" }}
+                    value={formik.values[field.name]}
+                    onChange={(value) =>
+                      formik.setFieldValue(field.name, value)
+                    }
+                    modules={{
+                      toolbar: [
+                        [{ header: "1" }, { header: "2" }, { font: [] }],
+                        [{ list: "ordered" }, { list: "bullet" }],
+                        ["bold", "italic", "underline"],
+                        ["blockquote", "code-block"],
+                        [{ align: [] }],
+                        ["link", "image"],
+                      ],
+                    }}
+                  />
+                  {formik.touched[field.name] && formik.errors[field.name] && (
+                    <Typography variant="body2" color="error">
+                      {formik.errors[field.name]}
+                    </Typography>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Select") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <FormLabel>{field.name.toUpperCase()}</FormLabel>
+                  <RadioGroup
+                    name={field.name}
+                    value={formik.values[field.name]}
+                    onChange={formik.handleChange}
+                  >
+                    {field.options.map((option) => (
+                      <FormControlLabel
+                        key={option}
+                        value={option}
+                        control={<Radio />}
+                        label={option}
+                      />
+                    ))}
+                  </RadioGroup>
+                  {formik.touched[field.name] && formik.errors[field.name] && (
+                    <Typography variant="body2" color="error">
+                      {formik.errors[field.name]}
+                    </Typography>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Checkbox") {
+              return (
+                <Grid sx={{ pb: 3 }} key={field.name}>
+                  <FormLabel>{field.name.toUpperCase()}</FormLabel>
+                  <br />
+                  <FormGroup>
+                    {field.options.map((option) => (
+                      <FormControlLabel
+                        key={option}
+                        control={
+                          <Checkbox
+                            value={option}
+                            checked={formik.values[field.name]?.includes(
+                              option
+                            )}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              // Ensure the value is always treated as an array
+                              const currentValue = Array.isArray(
+                                formik.values[field.name]
+                              )
+                                ? formik.values[field.name]
+                                : [];
+                              const newValue = checked
+                                ? [...currentValue, option] // Add the selected option
+                                : currentValue.filter(
+                                    (item) => item !== option
+                                  ); // Remove the unselected option
+                              formik.setFieldValue(field.name, newValue); // Update the form field
+                            }}
+                          />
+                        }
+                        label={option}
+                      />
+                    ))}
+                  </FormGroup>
+                  {formik.touched[field.name] && formik.errors[field.name] && (
+                    <Typography variant="body2" color="error">
+                      {formik.errors[field.name]}
+                    </Typography>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Autocomplete") {
+              return (
+                <Autocomplete
+                  sx={{ pb: 3 }}
+                  key={field.name}
+                  options={field.options}
+                  getOptionLabel={(option) => option}
+                  value={formik.values[field.name]}
+                  onChange={(e, value) =>
+                    formik.setFieldValue(field.name, value)
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={field.name.toUpperCase()}
+                      error={
+                        formik.touched[field.name] &&
+                        Boolean(formik.errors[field.name])
+                      }
+                      helperText={
+                        formik.touched[field.name] && formik.errors[field.name]
+                      }
+                    />
+                  )}
+                />
+              );
+            } else if (field.type === "Date") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <Grid direction="column" display="flex">
+                    <label>{field.name.toUpperCase()}</label>
+                    <Calendar
+                      style={{
+                        width: "350px",
+                        padding: "10px",
+                        border: "1px solid #3f3f46",
+                        borderRadius: "4px",
+                        background: "#09090b",
+                        color: "#f2f2f2",
+                        fontSize: "0.8571428571428571rem",
+                      }}
+                      value={formik.values[field.name]}
+                      onChange={(e) =>
+                        formik.setFieldValue(field.name, e.value)
+                      }
+                      placeholder="Select a date"
+                      showIcon
+                    />
+                    {formik.touched[field.name] &&
+                      formik.errors[field.name] && (
+                        <Typography variant="body2" color="error">
+                          {formik.errors[field.name]}
+                        </Typography>
+                      )}
+                  </Grid>
+                </Grid>
+              );
+            } else if (field.type === "Media") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <Typography variant="body1" gutterBottom>
+                    {field.name.toUpperCase()}
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    htmlFor="image-upload"
+                  >
+                    Choose File
+                    <input
+                      id="image-upload"
+                      type="file"
+                      name={field.name}
+                      accept="image/*"
+                      onChange={(event) =>
+                        formik.setFieldValue(
+                          field.name,
+                          event.currentTarget.files[0]
+                        )
+                      }
+                      ref={fileInputRef}
+                      hidden
+                    />
+                  </Button>
+                  {formik.touched[field.name] &&
+                      formik.errors[field.name] && (
+                        <Typography variant="body2" color="error">
+                          {formik.errors[field.name]}
+                        </Typography>
+                      )}
+                  {formik.values[field.name] && (
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{ mt: 1 }}
+                    >
+                      {formik.values[field.name].name}
+                    </Typography>
+                  )}
+                  {existingImage && (
+                    <Grid item xs={12} sx={{ pb: 3, pt: 3 }}>
+                      <Typography variant="body1" gutterBottom>
+                        CURRENT IMAGE:
+                      </Typography>
+                      <img
+                        src={\`\${BASE_URL}/uploads/\${existingImage}\`}
+                        alt="Current"
+                        style={{
+                          width: "150px",
+                          height: "auto",
+                          borderRadius: "8px",
+                        }}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Boolean") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formik.values.active}
+                        onChange={(e) =>
+                          formik.setFieldValue("active", e.target.checked)
+                        }
+                      />
+                    }
+                    label="ACITVE"
+                  />
+                </Grid>
+              );
+            }
+            return null; // If no field type matches
+          })}
+          {/* Submit Button */}
+          <Grid item xs={12} gap={5} display="flex" justifyContent="center">
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              <Box display="flex" gap=".5rem">
+                <Typography>{id ? "Update" : "Add"}</Typography>
+                <ArrowOutwardIcon />
+              </Box>
+            </Button>
+          </Grid>
+        </form>
 </Box>
 {id && (
 <>
@@ -873,12 +939,10 @@ app.post("/existing-project", async (req, res) => {
           );
           if (!collectionExists) {
             await db.createCollection(collectionName);
-            res
-              .status(200)
-              .send({
-                status: true,
-                message: "Collection created successfully",
-              });
+            res.status(200).send({
+              status: true,
+              message: "Collection created successfully",
+            });
           } else {
             res
               .status(500)
@@ -955,8 +1019,12 @@ useEffect(() => {
       setRows(updatedStudentData);
 
       // Project fields response
-      const projectFields =
-        projectResponse.data.projectsWithoutActiveField[0]?.fields || [];
+      // Project fields response
+      const project = projectResponse.data.projectsWithoutActiveField.find(
+        (project) => project.collectionName === \"${collectionName}"\
+      );
+
+      const projectFields = project?.fields || [];
 
       if (studentData.length > 0) {
         // Extract valid field names from project fields
@@ -1201,30 +1269,45 @@ initialValues[field.name] = "";
 return initialValues;
 };
 const validationSchema = Yup.object(
-fields.reduce((schema, field) => {
-if (field.type === "Text") {
-schema[field.name] = Yup.string().required(\`\${field.name} is required\`);
-} 
-else if (field.type === "Checkbox") {
-schema[field.name] = Yup.array()
-.min(1, "At least one field must be selected")
-.required(\`\${field.name} is required\`);
-} else if (field.type === "Date") {
-schema[field.name] = Yup.date()
-.nullable()
-.required(\`\${field.name} is required\`);
-}
-else if (field.type === "Media") {
-schema[field.name] = Yup.mixed().nullable().test("fileFormat", "Unsupported file format", (value) => {
-if (!value) return true; // If no file, it's allowed
-return ["image/jpeg", "image/png", "image/jpg"].includes(value.type);
-}).test("fileSize", "File size is too large", (value) => {
-if (!value) return true;
-return value.size <= 5 * 1024 * 1024; // Limit to 5MB
-});
-}
-return schema;
-}, {})
+  fields.reduce((schema, field) => {
+    if (field.type === "Text" || field.type === "Long Text") {
+      schema[field.name] = Yup.string().required(\`\${field.name} is required\`);
+    } else if (field.type === "Select") {
+      schema[field.name] = Yup.string()
+        .oneOf(field.options, "Invalid selection")
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Checkbox") {
+      schema[field.name] = Yup.array()
+        .min(1, "At least one option must be selected")
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Date") {
+      schema[field.name] = Yup.date()
+        .nullable()
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Autocomplete") {
+      schema[field.name] = Yup.string()
+        .oneOf(field.options, "Invalid selection")
+        .required(\`\${field.name} is required\`);
+    } else if (field.type === "Boolean") {
+      schema[field.name] = Yup.boolean().required(
+        \`\${field.name} is required\`
+      );
+    } else if (field.type === "Media") {
+      schema[field.name] = Yup.mixed()
+        .test("required", "File is required", (value) => {
+          return value instanceof File; // Ensures a file is selected
+        })
+        .test("fileFormat", "Unsupported file format", (value) => {
+          if (!value) return true; // Skip validation if empty (handled by required test)
+          return ["image/jpeg", "image/png", "image/jpg"].includes(value.type);
+        })
+        .test("fileSize", "File size must be under 5MB", (value) => {
+          if (!value) return true;
+          return value.size <= 5 * 1024 * 1024;
+        });
+    }      
+    return schema;
+  }, {})
 );
 const [initialValues, setInitialValues] = useState(generateInitialValues());
 const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -1334,218 +1417,270 @@ width:'100%'
 {id ? "Update Data" : "Add New Data"}
 </Typography>
 <form onSubmit={formik.handleSubmit}>
-   {fields.map((field) => {
-   if (field.type == "Text") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <TextField
-      fullWidth
-      label={field.name}
-      name={field.name}
-      value={formik.values[field.name]}
-      onChange={formik.handleChange}
-      onBlur={formik.handleBlur}
-      error={formik.touched[field.name] && Boolean(formik.errors[field.name])}
-      helperText={formik.touched[field.name] && formik.errors[field.name]}
-      />
-   </Grid>
-   );
-   } else if (field.type == "Long Text") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <FormLabel>{field.name}</FormLabel>
-      <ReactQuill
-      style={{ width: "100%" }}
-      value={formik.values[field.name]}
-      onChange={(value) => formik.setFieldValue(field.name, value)}
-      modules={{
-      toolbar: [
-      [{ header: "1" }, { header: "2" }, { font: [] }],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["bold", "italic", "underline"],
-      ["blockquote", "code-block"],
-      [{ align: [] }],
-      ["link", "image"],
-      ],
-      }}
-      />
-   </Grid>
-   );
-   } else if (field.type === "Select") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <FormLabel>{field.name}</FormLabel>
-      <RadioGroup
-         name={field.name}
-         value={formik.values[field.name]}
-         onChange={formik.handleChange}
-         >
-         {field.options.map((option) => (
-         <FormControlLabel
-         key={option}
-         value={option}
-         control={
-         <Radio />
-         }
-         label={option}
-         />
-         ))}
-      </RadioGroup>
-   </Grid>
-   );
-   } else if (field.type === "Checkbox") {
-   return (
-   <Grid sx={{ pb: 3 }} key={field.name}>
-   <FormLabel>{field.name}</FormLabel>
-   <br/>
-   {field.options.map((option) => (
-   <FormControlLabel
-   key={option}
-   control={
-   <Checkbox
-      value={option}
-      checked={formik.values[field.name]?.includes(option)}
-      onChange={(e) =>
-   {
-   const checked = e.target.checked;
-   // Ensure the value is always treated as an array
-   const currentValue = Array.isArray(
-   formik.values[field.name]
-   )
-   ? formik.values[field.name]
-   : [];
-   const newValue = checked
-   ? [...currentValue, option] // Add the selected option
-   : currentValue.filter((item) => item !== option); // Remove the unselected option
-   formik.setFieldValue(field.name, newValue); // Update the form field
-   }}
-   />
-   }
-   label={option}
-   />
-   ))}
-   </Grid>
-   );
-   } else if (field.type === "Autocomplete") {
-   return (
-   <Autocomplete
-   sx={{ pb: 3 }}
-   key={field.name}
-   options={field.options}
-   getOptionLabel={(option) => option}
-   value={formik.values[field.name]}
-   onChange={(e, value) =>
-   formik.setFieldValue(field.name, value)
-   }
-   renderInput={(params) => (
-   <TextField
-   {...params}
-   label={field.name}
-   error={
-   formik.touched[field.name] &&
-   Boolean(formik.errors[field.name])
-   }
-   helperText={
-   formik.touched[field.name] && formik.errors[field.name]
-   }
-   />
-   )}
-   />
-   );
-   } else if (field.type === "Date") {
-   return (
-   <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
-   <Grid direction="column" display="flex">
-      <label>{field.name}</label>
-      <Calendar
-      style={{ width: "350px", padding: "10px", border:"1px solid #3f3f46", borderRadius:"4px", background:"#09090b", color:"#f2f2f2", fontSize:"0.8571428571428571rem" }}
-      value={formik.values[field.name]}
-      onChange={(e) =>
-      formik.setFieldValue(field.name, e.value)
-      }
-      placeholder="Select a date"
-      showIcon
-      />
-      {formik.touched[field.name] &&
-      formik.errors[field.name] && (
-      <Typography variant="body2" color="error">
-         {formik.errors[field.name]}
-      </Typography>
-      )}
-   </Grid>
-   </Grid>
-   );
-   } else if (field.type === "Media") {
-   return (
-   <Grid item xs={12} sx={{pb:3}} key={field.name}>
-      <Typography variant="body1" gutterBottom>
-         {field.name}
-      </Typography>
-      <Button variant="outlined" component="label" htmlFor="image-upload">
-      Choose File
-      <input
-         id="image-upload"
-         type="file"
-         name={field.name}
-         accept="image/*"
-         onChange={(event) =>
-      formik.setFieldValue(field.name, event.currentTarget.files[0])
-      }
-      ref={fileInputRef}
-      hidden
-      />
-      </Button>
-      {formik.values[field.name] && (
-      <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-      {formik.values[field.name].name}
-      </Typography>
-      )}
-      {existingImage && (
-      <Grid item xs={12} sx={{pb:3,pt:3}}>
-         <Typography variant="body1" gutterBottom>
-            Current Image:
-         </Typography>
-         <img
-         src={\`\${BASE_URL}/uploads/\${existingImage}\`}
-         alt="Current"
-         style={{
-         width: "150px",
-         height: "auto",
-         borderRadius: "8px",
-         }}
-         />
-      </Grid>
-      )}
-   </Grid>
-   );
-   } else if (field.type === "Boolean") { 
-   return ( 
-   <Grid item xs={12} sx={{pb:3}}>
-      <FormControlLabel
-      control={
-      <Switch
-         checked={formik.values.active}
-         onChange={(e) =>
-      formik.setFieldValue("active", e.target.checked)
-      }
-      />
-      }
-      label="Active"
-      />
-   </Grid>
-   )}
-   return null; // If no field type matches
-   })}
-   {/* Submit Button */}
-   <Grid item xs={12} gap={5} display="flex" justifyContent="center">
-      <Button type="submit" variant="contained" disabled={isSubmitting}>
-         <Box display="flex" gap=".5rem">
-            <Typography>{id ? "Update" : "Add"}</Typography>
-            <ArrowOutwardIcon />
-         </Box>
-      </Button>
-   </Grid>
-</form>
+          {fields.map((field) => {
+            if (field.type == "Text") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <TextField
+                    fullWidth
+                    label={field.name.toUpperCase()}
+                    name={field.name}
+                    value={formik.values[field.name]}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched[field.name] &&
+                      Boolean(formik.errors[field.name])
+                    }
+                    helperText={
+                      formik.touched[field.name] && formik.errors[field.name]
+                    }
+                  />
+                </Grid>
+              );
+            } else if (field.type == "Long Text") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <FormLabel>{field.name.toUpperCase()}</FormLabel>
+                  <ReactQuill
+                    style={{ width: "100%" }}
+                    value={formik.values[field.name]}
+                    onChange={(value) =>
+                      formik.setFieldValue(field.name, value)
+                    }
+                    modules={{
+                      toolbar: [
+                        [{ header: "1" }, { header: "2" }, { font: [] }],
+                        [{ list: "ordered" }, { list: "bullet" }],
+                        ["bold", "italic", "underline"],
+                        ["blockquote", "code-block"],
+                        [{ align: [] }],
+                        ["link", "image"],
+                      ],
+                    }}
+                  />
+                  {formik.touched[field.name] && formik.errors[field.name] && (
+                    <Typography variant="body2" color="error">
+                      {formik.errors[field.name]}
+                    </Typography>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Select") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <FormLabel>{field.name.toUpperCase()}</FormLabel>
+                  <RadioGroup
+                    name={field.name}
+                    value={formik.values[field.name]}
+                    onChange={formik.handleChange}
+                  >
+                    {field.options.map((option) => (
+                      <FormControlLabel
+                        key={option}
+                        value={option}
+                        control={<Radio />}
+                        label={option}
+                      />
+                    ))}
+                  </RadioGroup>
+                  {formik.touched[field.name] && formik.errors[field.name] && (
+                    <Typography variant="body2" color="error">
+                      {formik.errors[field.name]}
+                    </Typography>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Checkbox") {
+              return (
+                <Grid sx={{ pb: 3 }} key={field.name}>
+                  <FormLabel>{field.name.toUpperCase()}</FormLabel>
+                  <br />
+                  <FormGroup>
+                    {field.options.map((option) => (
+                      <FormControlLabel
+                        key={option}
+                        control={
+                          <Checkbox
+                            value={option}
+                            checked={formik.values[field.name]?.includes(
+                              option
+                            )}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              // Ensure the value is always treated as an array
+                              const currentValue = Array.isArray(
+                                formik.values[field.name]
+                              )
+                                ? formik.values[field.name]
+                                : [];
+                              const newValue = checked
+                                ? [...currentValue, option] // Add the selected option
+                                : currentValue.filter(
+                                    (item) => item !== option
+                                  ); // Remove the unselected option
+                              formik.setFieldValue(field.name, newValue); // Update the form field
+                            }}
+                          />
+                        }
+                        label={option}
+                      />
+                    ))}
+                  </FormGroup>
+                  {formik.touched[field.name] && formik.errors[field.name] && (
+                    <Typography variant="body2" color="error">
+                      {formik.errors[field.name]}
+                    </Typography>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Autocomplete") {
+              return (
+                <Autocomplete
+                  sx={{ pb: 3 }}
+                  key={field.name}
+                  options={field.options}
+                  getOptionLabel={(option) => option}
+                  value={formik.values[field.name]}
+                  onChange={(e, value) =>
+                    formik.setFieldValue(field.name, value)
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={field.name.toUpperCase()}
+                      error={
+                        formik.touched[field.name] &&
+                        Boolean(formik.errors[field.name])
+                      }
+                      helperText={
+                        formik.touched[field.name] && formik.errors[field.name]
+                      }
+                    />
+                  )}
+                />
+              );
+            } else if (field.type === "Date") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <Grid direction="column" display="flex">
+                    <label>{field.name.toUpperCase()}</label>
+                    <Calendar
+                      style={{
+                        width: "350px",
+                        padding: "10px",
+                        border: "1px solid #3f3f46",
+                        borderRadius: "4px",
+                        background: "#09090b",
+                        color: "#f2f2f2",
+                        fontSize: "0.8571428571428571rem",
+                      }}
+                      value={formik.values[field.name]}
+                      onChange={(e) =>
+                        formik.setFieldValue(field.name, e.value)
+                      }
+                      placeholder="Select a date"
+                      showIcon
+                    />
+                    {formik.touched[field.name] &&
+                      formik.errors[field.name] && (
+                        <Typography variant="body2" color="error">
+                          {formik.errors[field.name]}
+                        </Typography>
+                      )}
+                  </Grid>
+                </Grid>
+              );
+            } else if (field.type === "Media") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <Typography variant="body1" gutterBottom>
+                    {field.name.toUpperCase()}
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    htmlFor="image-upload"
+                  >
+                    Choose File
+                    <input
+                      id="image-upload"
+                      type="file"
+                      name={field.name}
+                      accept="image/*"
+                      onChange={(event) =>
+                        formik.setFieldValue(
+                          field.name,
+                          event.currentTarget.files[0]
+                        )
+                      }
+                      ref={fileInputRef}
+                      hidden
+                    />
+                  </Button>
+                  {formik.touched[field.name] &&
+                      formik.errors[field.name] && (
+                        <Typography variant="body2" color="error">
+                          {formik.errors[field.name]}
+                        </Typography>
+                      )}
+                  {formik.values[field.name] && (
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={{ mt: 1 }}
+                    >
+                      {formik.values[field.name].name}
+                    </Typography>
+                  )}
+                  {existingImage && (
+                    <Grid item xs={12} sx={{ pb: 3, pt: 3 }}>
+                      <Typography variant="body1" gutterBottom>
+                        CURRENT IMAGE:
+                      </Typography>
+                      <img
+                        src={\`\${BASE_URL}/uploads/\${existingImage}\`}
+                        alt="Current"
+                        style={{
+                          width: "150px",
+                          height: "auto",
+                          borderRadius: "8px",
+                        }}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              );
+            } else if (field.type === "Boolean") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formik.values.active}
+                        onChange={(e) =>
+                          formik.setFieldValue("active", e.target.checked)
+                        }
+                      />
+                    }
+                    label="ACITVE"
+                  />
+                </Grid>
+              );
+            }
+            return null; // If no field type matches
+          })}
+          {/* Submit Button */}
+          <Grid item xs={12} gap={5} display="flex" justifyContent="center">
+            <Button type="submit" variant="contained" disabled={isSubmitting}>
+              <Box display="flex" gap=".5rem">
+                <Typography>{id ? "Update" : "Add"}</Typography>
+                <ArrowOutwardIcon />
+              </Box>
+            </Button>
+          </Grid>
+        </form>
 </Box>
 {id && (
 <>
@@ -1702,12 +1837,10 @@ app.post("/delete-collection", async (req, res) => {
   const { projectName, collectionName } = req.body;
   console.log(projectName, collectionName);
   if (!projectName || !collectionName) {
-    return res
-      .status(400)
-      .json({
-        status: false,
-        error: "Project name and collection name are required.",
-      });
+    return res.status(400).json({
+      status: false,
+      error: "Project name and collection name are required.",
+    });
   }
   try {
     // Delete the specific collection in the Project database

@@ -36,7 +36,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import ReportIcon from "@mui/icons-material/Report";
 import { BASE_URL } from "../../hooks/baseURL";
 import { Calendar } from "primereact/calendar";
-const AllEditalwin_student_dataData = () => {
+const AllEditselection_dataData = () => {
 const { id } = useParams();
 const navigate = useNavigate();
 const fileInputRef = useRef(null);
@@ -49,7 +49,7 @@ severity: "",
 });
 // const [aiPrompt, setAiPrompt] = useState("");
 // const [loadingAI, setLoadingAI] = useState(false);
-const fields = [{"type":"Text","name":"name"},{"type":"Long Text","name":"desc"},{"type":"Media","name":"student_img"},{"type":"Select","name":"gender","options":["Male","Female"]},{"type":"Checkbox","name":"language","options":["Tamil","English","Hindi"]},{"type":"Autocomplete","name":"city","options":["Chennai","Madurai","Coimbatore"]},{"type":"Date","name":"joiningdate"},{"type":"Boolean","name":"active"}];
+const fields = [{"type":"Select","name":"gender","options":["Male","Female"]},{"type":"Select","name":"Nation","options":["Indian","Others"]},{"type":"Boolean","name":"active"}];
 const generateInitialValues = () => {
 const initialValues = {};
 fields.forEach((field) => {
@@ -129,8 +129,8 @@ formData.append("existingImage", existingImage); // Existing image
 try {
 const method = id ? "put" : "post";
 const url = id
-? `${BASE_URL}/api/data/${"alwin_student_data"}/${id}`
-: `${BASE_URL}/api/data/${"alwin_student_data"}`;
+? `${BASE_URL}/api/data/${"selection_data"}/${id}`
+: `${BASE_URL}/api/data/${"selection_data"}`;
 await axios({
 method,
 url,
@@ -140,7 +140,7 @@ headers: {
 },
 });
 setIsSubmitting(false);
-navigate(`/main/alwin_university/Allalwin_student_dataData`);
+navigate(`/main/alwin_university/Allselection_dataData`);
 } catch (error) {
 console.error("Error submitting form:", error);
 setIsSubmitting(false);
@@ -150,7 +150,7 @@ setIsSubmitting(false);
 useEffect(() => {
 if (id) {
 axios
-.get(`${BASE_URL}/api/data/${"alwin_student_data"}/${id}`)
+.get(`${BASE_URL}/api/data/${"selection_data"}/${id}`)
 .then((response) => {
 const data = response.data.data;
 const updatedValues = {};
@@ -174,10 +174,10 @@ return;
 }
 try {
 setIsSubmitting(true);
-await axios.delete(`${BASE_URL}/api/data/${"alwin_student_data"}/${id}`);
+await axios.delete(`${BASE_URL}/api/data/${"selection_data"}/${id}`);
 setIsSubmitting(false);
 setOpenDeleteDialog(false); 
-navigate("/main/alwin_university/Allalwin_student_dataData");
+navigate("/main/alwin_university/Allselection_dataData");
 } catch (error) {
 console.error("Error deleting record:", error);
 setIsSubmitting(false);
@@ -192,7 +192,7 @@ return (
    startIcon={
    <NorthWestIcon />
    }
-   onClick={() => navigate("/main/alwin_university/Allalwin_student_dataData")}
+   onClick={() => navigate("/main/alwin_university/Allselection_dataData")}
    >
    Back
    </Button>
@@ -552,4 +552,4 @@ width:'100%'
 </Grid>
 );
 };
-export default AllEditalwin_student_dataData;
+export default AllEditselection_dataData;
