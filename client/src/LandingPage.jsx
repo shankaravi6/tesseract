@@ -57,7 +57,7 @@ const LandingPage = ({ onGetStartedClick }) => {
         >
           <Box sx={{ width: { xs: "100%", md: "50%" }, padding: {xs: "25px 0", md:"15px 0", sm:"15px 0"} }}>
             <Typography className="text-justify" variant="h1" sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
-            <span>AI-Powered</span> Dynamic Content Management System
+            AI-Powered <span className="bg-clip-text" style={{background:"linear-gradient(260deg, #858585b0, #f2f2f2)", color:"transparent", backgroundClip:"text"}}>Dynamic Content Management System</span>
             </Typography>
             <Typography
               sx={{
