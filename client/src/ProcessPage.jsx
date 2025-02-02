@@ -26,7 +26,7 @@ const ProcessPage = () => {
         <Button
           className="bg-white text-black font-semibold transition duration-300"
         >
-            <Typography style={{padding:"0px 15px"}} variant="h6">Get Started</Typography>
+            <Typography style={{padding:"0px 15px"}} variant="h6">Comming Soon</Typography>
         </Button>
       </div>
 
