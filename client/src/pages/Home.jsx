@@ -25,7 +25,7 @@ import { Formik, Field, Form } from "formik";
 import * as Yup from "yup";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import BorderColorIcon from '@mui/icons-material/BorderColor';
+import BorderColorIcon from "@mui/icons-material/BorderColor";
 import { IN_URL } from "../hooks/baseURL";
 
 // Validation schema with Yup
@@ -98,7 +98,6 @@ const Home = () => {
     fetchAllProjects();
   }, []);
 
-
   useEffect(() => {
     if (location.pathname === "/") {
       console.log("Navigated to home, refreshing...");
@@ -109,6 +108,7 @@ const Home = () => {
   const handleSubmit = async (values) => {
     try {
       await axios.post(`${IN_URL}/create_project`, values);
+      window.location.reload();
       fetchAllProjects(); // Refresh the project list after adding a new one
       handleClose();
     } catch (error) {
@@ -119,7 +119,7 @@ const Home = () => {
   return (
     <Grid container spacing={5} sx={{ padding: 3 }}>
       <Grid item xs={12} lg={5}>
-        <Card sx={{ p: 3, width: "100%", borderRadius:"4px" }}>
+        <Card sx={{ p: 3, width: "100%", borderRadius: "4px" }}>
           <Typography variant="h3">Create New Project</Typography>
           <Typography variant="h6" sx={{ pt: 3 }}>
             An intuitive CMS for easy website management, allowing users to
@@ -137,9 +137,13 @@ const Home = () => {
       {/* Display Table for Projects */}
       <Grid item xs={12} lg={7}>
         <TableContainer component={Paper}>
-        <Typography variant="h4" sx={{padding:"16px", textAlign:"center"}} gutterBottom>
-          All Projects & Collections
-        </Typography>
+          <Typography
+            variant="h4"
+            sx={{ padding: "16px", textAlign: "center" }}
+            gutterBottom
+          >
+            All Projects & Collections
+          </Typography>
           <Table>
             <TableHead>
               <TableRow>
@@ -175,7 +179,7 @@ const Home = () => {
                             </TableCell>
                             <TableCell>
                               <Button
-                                endIcon={<BorderColorIcon/>}
+                                endIcon={<BorderColorIcon />}
                                 variant="contained"
                                 color="primary"
                                 onClick={() =>
@@ -258,19 +262,19 @@ const Home = () => {
       </Dialog>
 
       <Snackbar
-            open={snackbar.open}
-            autoHideDuration={5000}
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            anchorOrigin={{ vertical: "top", horizontal: "right" }}
-          >
-            <Alert
-              onClose={() => setSnackbar({ ...snackbar, open: false })}
-              severity={snackbar.severity}
-              sx={{ width: "100%" }}
-            >
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Grid>
   );
 };

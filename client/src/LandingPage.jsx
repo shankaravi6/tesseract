@@ -17,7 +17,8 @@ const LandingPage = ({ onGetStartedClick }) => {
         width: "100%",
         minHeight: "100vh",
         flexDirection: "column",
-        padding:{xs:".5rem", sm:"0rem"}
+        padding: { xs: ".5rem", sm: "0rem" },
+        justifyContent: "center",
       }}
     >
       <Grid item xs={12}>
@@ -41,7 +42,9 @@ const LandingPage = ({ onGetStartedClick }) => {
                 marginTop: { xs: "20px", sm: "0" },
               }}
             >
-              <Typography onClick={() => navigate('/process')} variant="h6">Get Started</Typography>
+              <Typography onClick={() => navigate("/process")} variant="h6">
+                Get Started
+              </Typography>
             </Button>
           </Box>
         </Box>
@@ -55,9 +58,28 @@ const LandingPage = ({ onGetStartedClick }) => {
             flexDirection: { xs: "column-reverse", md: "row" },
           }}
         >
-          <Box sx={{ width: { xs: "100%", md: "50%" }, padding: {xs: "25px 0", md:"15px 0", sm:"15px 0"} }}>
-            <Typography className="text-justify" variant="h1" sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
-            AI-Powered <span className="bg-clip-text" style={{background:"linear-gradient(260deg, #858585b0, #f2f2f2)", color:"transparent", backgroundClip:"text"}}>Dynamic Content Management System</span>
+          <Box
+            sx={{
+              width: { xs: "100%", md: "50%" },
+              padding: { xs: "25px 0", md: "15px 0", sm: "15px 0" },
+            }}
+          >
+            <Typography
+              className="text-justify"
+              variant="h1"
+              sx={{ fontSize: { xs: "2rem", md: "3rem" } }}
+            >
+              AI-Powered{" "}
+              <span
+                className="bg-clip-text"
+                style={{
+                  background: "linear-gradient(260deg, #858585b0, #f2f2f2)",
+                  color: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Dynamic Content Management System
+              </span>
             </Typography>
             <Typography
               sx={{
@@ -72,7 +94,11 @@ const LandingPage = ({ onGetStartedClick }) => {
               to automate workflows, enhance user engagement, and deliver
               personalized experiences.
             </Typography>
-            <Typography color="#ff0066" variant="h5" sx={{ mt: 4, fontSize: { xs: "1.25rem", sm: "1.3rem" } }}>
+            <Typography
+              color="#ff0066"
+              variant="h5"
+              sx={{ mt: 4, fontSize: { xs: "1.25rem", sm: "1.3rem" } }}
+            >
               Start with [Smart]
             </Typography>
           </Box>
@@ -97,15 +123,28 @@ const LandingPage = ({ onGetStartedClick }) => {
           }}
         >
           <Box>
-            <Typography color="#52525b" sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}>
+            <Typography
+              color="#52525b"
+              sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}
+            >
               @ Copyright by <a href="http://silo-app.netlify.app/">SILO</a>
             </Typography>
           </Box>
-          <Box className="flex p-5" gap="1rem" sx={{ flexDirection: { xs: "row", sm: "row" } }}>
-            <Typography color="#52525b" sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}>
+          <Box
+            className="flex p-5"
+            gap="1rem"
+            sx={{ flexDirection: { xs: "row", sm: "row" } }}
+          >
+            <Typography
+              color="#52525b"
+              sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}
+            >
               Privacy Policy
             </Typography>
-            <Typography color="#52525b" sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}>
+            <Typography
+              color="#52525b"
+              sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}
+            >
               Terms of Use
             </Typography>
           </Box>

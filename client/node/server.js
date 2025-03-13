@@ -392,7 +392,7 @@ return initialValues;
 };
 const validationSchema = Yup.object(
   fields.reduce((schema, field) => {
-    if (field.type === "Text" || field.type === "Long Text") {
+    if (field.type === "Text" || field.type === "Long Text" || field.type === "Number") {
       schema[field.name] = Yup.string().required(\`\${field.name} is required\`);
     } else if (field.type === "Select") {
       schema[field.name] = Yup.string()
@@ -482,10 +482,16 @@ axios
 const data = response.data.data;
 const updatedValues = {};
 fields.forEach((field) => {
-updatedValues[field.name] = data[field.name] ?? (field.type === "boolean" ? false : "");
-if (field.type === "Media" && data[field.name]) {
-  setExistingImage(data[field.name]);
-}
+  if (field.type === "Date" && data[field.name]) {
+    updatedValues[field.name] = new Date(data[field.name]);
+  } else {
+    updatedValues[field.name] =
+      data[field.name] ?? (field.type === "boolean" ? false : "");
+  }
+
+  if (field.type === "Media" && data[field.name]) {
+    setExistingImage(data[field.name]);
+  }
 });
 setInitialValues(updatedValues);
 })
@@ -586,6 +592,27 @@ width:'100%'
                       {formik.errors[field.name]}
                     </Typography>
                   )}
+                </Grid>
+              );
+            } else if (field.type == "Number") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={field.name.toUpperCase()}
+                    name={field.name}
+                    value={formik.values[field.name]}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched[field.name] &&
+                      Boolean(formik.errors[field.name])
+                    }
+                    helperText={
+                      formik.touched[field.name] && formik.errors[field.name]
+                    }
+                  />
                 </Grid>
               );
             } else if (field.type === "Select") {
@@ -1270,7 +1297,7 @@ return initialValues;
 };
 const validationSchema = Yup.object(
   fields.reduce((schema, field) => {
-    if (field.type === "Text" || field.type === "Long Text") {
+    if (field.type === "Text" || field.type === "Long Text" || field.type === "Number") {
       schema[field.name] = Yup.string().required(\`\${field.name} is required\`);
     } else if (field.type === "Select") {
       schema[field.name] = Yup.string()
@@ -1360,10 +1387,16 @@ axios
 const data = response.data.data;
 const updatedValues = {};
 fields.forEach((field) => {
-updatedValues[field.name] = data[field.name] ?? (field.type === "boolean" ? false : "");
-if (field.type === "Media" && data[field.name]) {
-  setExistingImage(data[field.name]);
-}
+  if (field.type === "Date" && data[field.name]) {
+    updatedValues[field.name] = new Date(data[field.name]);
+  } else {
+    updatedValues[field.name] =
+      data[field.name] ?? (field.type === "boolean" ? false : "");
+  }
+
+  if (field.type === "Media" && data[field.name]) {
+    setExistingImage(data[field.name]);
+  }
 });
 setInitialValues(updatedValues);
 })
@@ -1464,6 +1497,27 @@ width:'100%'
                       {formik.errors[field.name]}
                     </Typography>
                   )}
+                </Grid>
+              );
+            } else if (field.type == "Number") {
+              return (
+                <Grid item xs={12} sx={{ pb: 3 }} key={field.name}>
+                  <TextField
+                    type="number"
+                    fullWidth
+                    label={field.name.toUpperCase()}
+                    name={field.name}
+                    value={formik.values[field.name]}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched[field.name] &&
+                      Boolean(formik.errors[field.name])
+                    }
+                    helperText={
+                      formik.touched[field.name] && formik.errors[field.name]
+                    }
+                  />
                 </Grid>
               );
             } else if (field.type === "Select") {

@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import LandingPage from './LandingPage';
 import MiniDrawer from './components/SideBar';
 import ProcessPage from './ProcessPage';
+import "primereact/resources/themes/viva-dark/theme.css";
+
 
 const App = () => {
   return (

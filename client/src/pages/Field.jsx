@@ -302,6 +302,7 @@ const FieldData = () => {
       });
     }
   };
+  
 
   return (
     <Grid container spacing={3} sx={{ padding: 3 }}>
@@ -418,6 +419,7 @@ const FieldData = () => {
                   {[
                     "Text",
                     "Long Text",
+                    "Number",
                     "Media",
                     "Select",
                     "Checkbox",
