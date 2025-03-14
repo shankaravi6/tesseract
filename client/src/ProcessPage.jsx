@@ -12,7 +12,7 @@ const ProcessPage = () => {
       <div className="flex flex-col justify-center items-center gap-5 text-center w-full">
         {/* Heading */}
         <h1 className="text-2xl md:text-5xl font-bold mb-0">
-          Work in Progress
+          Almost there...
         </h1>
 
         {/* Subheading */}
