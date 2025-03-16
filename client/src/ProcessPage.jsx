@@ -11,9 +11,7 @@ const ProcessPage = () => {
       {/* Main Content */}
       <div className="flex flex-col justify-center items-center gap-5 text-center w-full">
         {/* Heading */}
-        <h1 className="text-2xl md:text-5xl font-bold mb-0">
-          Almost there...
-        </h1>
+        <h1 className="text-2xl md:text-5xl font-bold mb-0">Almost there...</h1>
 
         {/* Subheading */}
         <p className="text-lg md:text-xl" style={{ color: "#d4d4d8" }}>
@@ -22,7 +20,7 @@ const ProcessPage = () => {
 
         {/* Video */}
         <video width="900" controls autoPlay>
-          <source src="/demo.mp4" type="video/mp4" />
+          <source src="/demo_video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
