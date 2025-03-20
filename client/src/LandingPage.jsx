@@ -127,7 +127,7 @@ const LandingPage = ({ onGetStartedClick }) => {
               color="#52525b"
               sx={{ fontSize: { xs: "0.8rem", sm: "1rem" } }}
             >
-              @ Copyright by <a href="http://silo-app.netlify.app/">SILO</a>
+              © 2025 <a href="https://shanvix.netlify.app/">ShanVix</a>
             </Typography>
           </Box>
           <Box
